@@ -9,7 +9,7 @@
     body{ font-family: Arial, sans-serif; margin:16px; background:var(--bg); color:var(--text); }
     .card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; }
     .top{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
-    .btn{ background:var(--btn); border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:12px; text-decoration:none; display:inline-block; }
+    .btn{ background:var(--btn); border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:12px; text-decoration:none; display:inline-block; cursor:pointer; }
     .btn:hover{ background:var(--btn2); }
     input, button, select{ padding:10px; font-size:16px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--text); }
     table{ width:100%; border-collapse:collapse; margin-top:12px; }
@@ -17,6 +17,9 @@
     th{ color:var(--muted); font-weight:700; }
     .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
     .muted{ color:var(--muted); font-size:12px; }
+    .totalbox{ margin-top:12px; padding:10px 12px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,0.02); }
+    .danger{ background:#7a1f2b; border-color:#7a1f2b; }
+    .danger:hover{ background:#922638; }
   </style>
 </head>
 <body>
@@ -27,6 +30,8 @@
   </div>
 
   <div class="card" style="margin-top:12px;">
+
+    <!-- SHTO BLERJE (POST) -->
     <form class="row" method="post" action="/purchases?b={{ b }}">
       <div>
         <div class="muted">Data</div>
@@ -46,6 +51,39 @@
       <button class="btn" type="submit">Shto</button>
     </form>
 
+    <!-- FILTRA (GET) -->
+    <form class="row" method="get" action="/purchases" style="margin-top:14px;">
+      <input type="hidden" name="b" value="{{ b }}">
+
+      <div>
+        <div class="muted">Nga</div>
+        <input type="date" name="nga" value="{{ nga or '' }}">
+      </div>
+
+      <div>
+        <div class="muted">Deri</div>
+        <input type="date" name="deri" value="{{ deri or '' }}">
+      </div>
+
+      <div style="min-width:220px; flex:1;">
+        <div class="muted">Furnitori (kërko)</div>
+        <input list="vendors" name="vendor" placeholder="Shkruaj furnitorin..." value="{{ vendor_filter or '' }}">
+        <datalist id="vendors">
+          {% for v in vendors %}
+            <option value="{{ v }}"></option>
+          {% endfor %}
+        </datalist>
+      </div>
+
+      <button class="btn" type="submit">Filtro</button>
+      <a class="btn" href="/purchases?b={{ b }}">Reset</a>
+    </form>
+
+    <div class="totalbox">
+      TOTAL (sipas filtrit): <b>{{ '%.2f'|format(total) }}</b>
+      <span class="muted" style="margin-left:10px;">Nr. rreshtave: {{ rows|length }}</span>
+    </div>
+
     <table>
       <thead>
         <tr>
@@ -61,15 +99,26 @@
           <td>{{ r["buy_date"] }}</td>
           <td>{{ r["vendor"] }}</td>
           <td>{{ '%.2f'|format(r["amount"]) }}</td>
-          <td>
+          <td style="display:flex; gap:8px; flex-wrap:wrap;">
+
             <a class="btn" href="/purchases/edit/{{ r['id'] }}?b={{ b }}">✏️ Edit</a>
-            <a class="btn" href="/purchases/delete/{{ r['id'] }}?b={{ b }}" onclick="return confirm('A je i sigurt që do ta fshish?')">🗑️ Fshi</a>
+
+            <!-- FSHI duhet POST (sepse route delete_purchase është methods=["POST"]) -->
+            <form method="post" action="/purchases/delete/{{ r['id'] }}" style="margin:0;"
+                  onsubmit="return confirm('A je i sigurt që do ta fshish?')">
+              <input type="hidden" name="b" value="{{ b }}">
+              <button class="btn danger" type="submit">🗑️ Fshi</button>
+            </form>
+
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+
   </div>
 
 </body>
 </html>
+
+

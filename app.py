@@ -491,42 +491,52 @@ def liber_porosi():
     end = request.args.get("end", "").strip()
 
     where = []
-params = []
+    params = []
 
-if date_from:
-    where.append("sale_date >= ?")
-    params.append(date_from)
+    if start:
+        where.append("order_date >= ?")
+        params.append(start)
 
-if date_to:
-    where.append("sale_date <= ?")
-    params.append(date_to)
+    if end:
+        where.append("order_date <= ?")
+        params.append(end)
 
-if client_q:
-    where.append("client LIKE ?")
-    params.append(f"%{client_q}%")
+    where_sql = ("WHERE " + " AND ".join(where)) if where else ""
 
-where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+    with get_conn(b) as conn:
+        cur = conn.cursor()
 
-with get_conn(b) as conn:
-    rows = conn.execute(
-        f"SELECT id, sale_date, client, amount FROM sales {where_sql} ORDER BY sale_date DESC, id DESC",
-        params
-    ).fetchall()
+        rows = cur.execute(
+            f"""
+            SELECT order_date, note, amount
+            FROM orders_cash
+            {where_sql}
+            ORDER BY order_date ASC, id ASC
+            """,
+            params
+        ).fetchall()
 
-    total = conn.execute(
-        f"SELECT COALESCE(SUM(amount), 0) FROM sales {where_sql}",
-        params
-    ).fetchone()[0]
+        total = cur.execute(
+            f"SELECT COALESCE(SUM(amount),0) AS t FROM orders_cash {where_sql}",
+            params
+        ).fetchone()["t"]
 
+        total_all = cur.execute(
+            "SELECT COALESCE(SUM(amount),0) AS t FROM orders_cash"
+        ).fetchone()["t"]
 
     return render_template(
         "liber_porosi.html",
-        b=b, start=start, end=end,
+        b=b,
+        start=start,
+        end=end,
         rows=rows,
         total=float(total),
-        total_all=float(total_all)
+        total_all=float(total_all),
     )
+
 
 if __name__ == "__main__":
     init_db()
     app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)
+

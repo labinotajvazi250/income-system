@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 style="margin-bottom:14px;">Libër Blerje / Kosto — {{ b }}</h2>
+
+<form method="GET" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-bottom:14px;">
+  <input type="hidden" name="b" value="{{ b }}">
+
+  <div>
+    <label>Prej</label><br>
+    <input type="date" name="start" value="{{ start }}" class="input">
+  </div>
+
+  <div>
+    <label>Deri</label><br>
+    <input type="date" name="end" value="{{ end }}" class="input">
+  </div>
+
+  <button type="submit" class="btn">Shfaq</button>
+  <a class="btn" href="/liber/bleje?b={{ b }}">Pastro</a>
+</form>
+
+<div style="display:flex; gap:18px; flex-wrap:wrap; margin-bottom:10px;">
+  <div><b>Total (periudha):</b> {{ "%.2f"|format(total) }}</div>
+  <div><b>Total (gjithsej):</b> {{ "%.2f"|format(total_all) }}</div>
+</div>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Furnitori / Përshkrimi</th>
+      <th style="text-align:right;">Shuma</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+      <tr>
+        <td>{{ r['buy_date'] }}</td>
+        <td>{{ r['vendor'] }}</td>
+        <td style="text-align:right;">{{ "%.2f"|format(r['amount']) }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="3">S’ka të dhëna për këtë periudhë.</td></tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <th colspan="2" style="text-align:right;">TOTAL (periudha)</th>
+      <th style="text-align:right;">{{ "%.2f"|format(total) }}</th>
+    </tr>
+  </tfoot>
+</table>
+
+{% endblock %}

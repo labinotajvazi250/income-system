@@ -1,0 +1,172 @@
+﻿<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shitjet</title>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#111a2e; --text:#eaf0ff; --muted:#9fb0d0;
+      --border:#223056; --btn:#1d2a4a; --btn2:#2b3b64; --danger:#7a1f2b;
+    }
+    body{ font-family: Arial, sans-serif; margin:16px; background:var(--bg); color:var(--text); }
+    a{ color:var(--text); }
+    .btn{ background:var(--btn); border:1px solid var(--border); color:var(--text);
+      padding:10px 12px; border-radius:12px; text-decoration:none; display:inline-block; cursor:pointer; }
+    .btn:hover{ background:var(--btn2); }
+    .btn-danger{ background:var(--danger); }
+    .btn-danger:hover{ background:#8d2634; }
+    .card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; margin-top:12px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
+    input, button{ padding:10px; font-size:16px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--text); }
+    table{ width:100%; border-collapse:collapse; margin-top:12px; }
+    th, td{ border-bottom:1px solid var(--border); padding:10px; text-align:left; }
+    th{ color:var(--muted); font-size:13px; font-weight:700; }
+    td{ font-size:14px; }
+    .actions a{ margin-right:10px; }
+    .totalbox{
+      margin-top:12px; padding:10px 12px; border:1px solid var(--border);
+      border-radius:12px; background:rgba(255,255,255,0.03); font-weight:700;
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .totalbox span{ color:var(--muted); font-weight:600; }
+    .tfoot td{ font-weight:800; border-top:1px solid var(--border); }
+    .checkcol{ width:42px; }
+  </style>
+</head>
+<body>
+
+  <div class="row" style="justify-content:space-between;">
+    <h2 style="margin:0;">Shitjet — {% if b=="LD" %}L&amp;D{% else %}D&amp;L{% endif %}</h2>
+    <a class="btn" href="/dashboard?b={{b}}">⬅ Dashboard</a>
+  </div>
+
+  <div class="card">
+
+    <!-- SHTO SHITJE -->
+    <form class="row" method="post" action="{{ url_for('sales', b=b) }}">
+      <input type="hidden" name="b" value="{{ b }}">
+      <div>
+        <div style="color:var(--muted); font-size:13px;">Data</div>
+        <input type="date" name="sale_date" value="{{ today }}">
+      </div>
+      <div>
+        <div style="color:var(--muted); font-size:13px;">Klienti</div>
+        <input type="text" name="client" placeholder="Klienti" required>
+      </div>
+      <div>
+        <div style="color:var(--muted); font-size:13px;">Shuma</div>
+        <input type="number" step="0.01" name="amount" placeholder="Shuma" required>
+      </div>
+      <button class="btn" type="submit">Shto</button>
+    </form>
+
+    <!-- FILTER: NGA / DERI / KLIENTI -->
+    <form class="row" method="get" action="/sales" style="margin-top:12px;">
+      <input type="hidden" name="b" value="{{ b }}">
+
+      <div>
+        <div style="color:var(--muted); font-size:13px;">Nga</div>
+        <input type="date" name="from" value="{{ date_from or '' }}">
+      </div>
+
+      <div>
+        <div style="color:var(--muted); font-size:13px;">Deri</div>
+        <input type="date" name="to" value="{{ date_to or '' }}">
+      </div>
+
+      <div>
+        <div style="color:var(--muted); font-size:13px;">Klienti</div>
+        <input type="text" name="client" placeholder="Shkruaj klientin" value="{{ client_q or '' }}">
+      </div>
+
+      <button class="btn" type="submit">Filtro</button>
+      <a class="btn" href="/sales?b={{ b }}">Reset</a>
+    </form>
+
+    <!-- TOTAL sipas filtrit -->
+    <div class="totalbox">
+      <div><span>Total (sipas filtrit):</span> {{ '%.2f'|format(total) }}</div>
+      <div><span>Nr. rreshtave:</span> {{ rows|length }}</div>
+      {% if client_q %}
+        <div><span>Klienti:</span> {{ client_q }}</div>
+      {% endif %}
+      {% if date_from or date_to %}
+        <div><span>Periudha:</span> {{ date_from or '—' }} → {{ date_to or '—' }}</div>
+      {% endif %}
+    </div>
+
+    <!-- FSHI TE ZGJEDHURAT -->
+    <form method="post" action="{{ url_for('delete_selected_sales', b=b) }}">
+      <input type="hidden" name="b" value="{{ b }}">
+
+      <div class="row" style="margin-top:12px; justify-content:space-between; align-items:center;">
+        <label style="color:var(--muted); font-size:13px;">
+          <input id="selectAll" type="checkbox"> Selektro të gjitha
+        </label>
+
+        <button class="btn btn-danger" type="submit"
+          onclick="return confirm('A je i sigurt që do me i fshi shitjet e zgjedhura?')">
+          🗑 Fshi të zgjedhurat
+        </button>
+      </div>
+
+      <div style="overflow:auto; max-height:70vh;">
+        <table>
+          <thead>
+            <tr>
+              <th class="checkcol"></th>
+              <th>Data</th>
+              <th>Klienti</th>
+              <th>Shuma</th>
+              <th>Veprime</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+            <tr>
+              <td class="checkcol">
+                <input class="rowCheck" type="checkbox" name="delete_ids" value="{{ r['id'] }}">
+              </td>
+              <td>{{ r["sale_date"] }}</td>
+              <td>{{ r["client"] }}</td>
+              <td>{{ '%.2f'|format(r["amount"]) }}</td>
+              <td class="actions">
+                <a href="{{ url_for('edit_sale', id=r['id'], b=b) }}">✏ Edit</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+
+          <tfoot class="tfoot">
+            <tr>
+              <td></td>
+              <td colspan="2" style="text-align:right;">TOTAL</td>
+              <td>{{ '%.2f'|format(total) }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </form>
+
+  </div>
+
+  <script>
+    const selectAll = document.getElementById("selectAll");
+    const rowChecks = () => Array.from(document.querySelectorAll(".rowCheck"));
+
+    selectAll?.addEventListener("change", () => {
+      rowChecks().forEach(cb => cb.checked = selectAll.checked);
+    });
+
+    document.addEventListener("change", (e) => {
+      if (!e.target.classList.contains("rowCheck")) return;
+      const all = rowChecks();
+      const checkedCount = all.filter(x => x.checked).length;
+      if (selectAll) selectAll.checked = (checkedCount === all.length && all.length > 0);
+    });
+  </script>
+
+</body>
+</html>

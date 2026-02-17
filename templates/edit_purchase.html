@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="sq">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit Porosi-Kesh</title>
+  <style>
+    :root{
+      --bg:#0b1220; --stroke:#20314f; --text:#e6eefc; --muted:#a9b7d0;
+      --btn2:#24324a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:radial-gradient(1200px 600px at 30% 0%, #0f2347 0%, var(--bg) 50%) fixed;
+      color:var(--text);
+      font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      padding:22px;
+    }
+    .card{
+      max-width:780px;
+      margin:0 auto;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      padding:16px;
+    }
+    h1{margin:0 0 6px 0; font-size:22px}
+    .sub{color:var(--muted); margin-bottom:14px; font-size:12px}
+    label{display:block; color:var(--muted); font-size:12px; margin:0 0 6px 2px}
+    input{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      background:rgba(10,16,30,.6);
+      color:var(--text);
+      outline:none;
+      margin-bottom:12px;
+    }
+    .row{display:grid; grid-template-columns: 220px 1fr; gap:12px}
+    .btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
+    button, a{
+      padding:10px 14px; border-radius:12px; border:1px solid var(--stroke);
+      background:rgba(255,255,255,.03); color:var(--text); text-decoration:none;
+      cursor:pointer; font-weight:600;
+      display:inline-flex; align-items:center; justify-content:center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Edit Porosi-Kesh</h1>
+    <div class="sub">Biznesi: <b>{{ b }}</b></div>
+
+    <form method="post">
+      <div class="row">
+        <div>
+          <label>Data</label>
+          <input type="date" name="order_date" value="{{ row['order_date'] }}" required>
+        </div>
+        <div>
+          <label>Vlera</label>
+          <input type="number" step="0.01" name="amount" value="{{ row['amount'] }}" required>
+        </div>
+      </div>
+
+      <label>Përshkrimi</label>
+      <input type="text" name="note" value="{{ row['note'] or '' }}">
+
+      <div class="btns">
+        <button type="submit">Ruaj</button>
+        <a href="/orders_cash?b={{b}}">⬅ Kthehu</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

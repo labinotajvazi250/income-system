@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edit Shitje</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#0b1220;
+    color:#eaf0ff;
+    padding:20px;
+}
+.card{
+    background:#111a2e;
+    padding:20px;
+    border-radius:14px;
+    max-width:420px;
+    margin:auto;
+}
+input{
+    width:100%;
+    padding:10px;
+    margin-top:6px;
+    margin-bottom:14px;
+    border-radius:10px;
+    border:1px solid #223056;
+    background:#0b1220;
+    color:white;
+}
+button{
+    background:#1d2a4a;
+    color:white;
+    padding:10px 16px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+}
+button:hover{ background:#2b3b64; }
+a{ color:#9fb0d0; text-decoration:none; }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h2>Ndrysho shitjen</h2>
+
+<form method="post">
+<input type="hidden" name="b" value="{{b}}">
+
+Data
+<input type="date" name="sale_date" value="{{ r['sale_date'] }}">
+
+Klienti
+<input type="text" name="client" value="{{ r['client'] }}">
+
+Shuma
+<input type="number" step="0.01" name="amount" value="{{ r['amount'] }}">
+
+<button type="submit">Ruaj ndryshimet</button>
+</form>
+
+<br>
+<a href="{{ url_for('sales', b=b) }}">⬅ Kthehu te shitjet</a>
+
+</div>
+
+</body>
+</html>

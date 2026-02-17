@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="sq">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Porosi-Kesh</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --panel2:#0c1629;
+      --stroke:#20314f;
+      --text:#e6eefc;
+      --muted:#a9b7d0;
+      --btn:#1f3bff;
+      --btn2:#24324a;
+      --good:#22c55e;
+      --bad:#ef4444;
+      --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:radial-gradient(1200px 600px at 30% 0%, #0f2347 0%, var(--bg) 50%) fixed;
+      color:var(--text);
+      font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      padding:22px;
+    }
+    .top{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; flex-wrap:wrap; margin-bottom:14px;
+    }
+    h1{margin:0; font-size:24px; letter-spacing:.2px}
+    .btns{display:flex; gap:10px; flex-wrap:wrap}
+    a.btn, button.btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 14px; border-radius:12px; border:1px solid var(--stroke);
+      background:var(--btn2); color:var(--text); text-decoration:none;
+      cursor:pointer; font-weight:600;
+    }
+    a.btn.primary, button.btn.primary{background:rgba(31,59,255,.25); border-color:rgba(31,59,255,.45)}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      padding:14px;
+    }
+    .form{
+      display:grid;
+      grid-template-columns: 180px 1fr 200px auto;
+      gap:10px;
+      align-items:end;
+      margin-top:10px;
+    }
+    label{display:block; color:var(--muted); font-size:12px; margin:0 0 6px 2px}
+    input{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      background:rgba(10,16,30,.6);
+      color:var(--text);
+      outline:none;
+    }
+    input::placeholder{color:#8193b4}
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      margin-top:14px;
+      overflow:hidden;
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      background:rgba(10,16,30,.35);
+    }
+    th, td{padding:12px 12px; border-bottom:1px solid rgba(32,49,79,.55)}
+    th{color:var(--muted); text-align:left; font-size:12px; letter-spacing:.25px}
+    tr:last-child td{border-bottom:none}
+    td.amount{font-variant-numeric:tabular-nums; font-weight:700}
+    .actions a{
+      color:var(--text);
+      text-decoration:none;
+      padding:6px 10px;
+      border-radius:10px;
+      border:1px solid var(--stroke);
+      margin-right:6px;
+      display:inline-block;
+      background:rgba(255,255,255,.03);
+    }
+    .actions a.delete{border-color:rgba(239,68,68,.55); background:rgba(239,68,68,.10)}
+    .actions a.edit{border-color:rgba(245,158,11,.55); background:rgba(245,158,11,.10)}
+    .sub{color:var(--muted); margin-top:2px; font-size:12px}
+    @media (max-width: 900px){
+      .form{grid-template-columns:1fr 1fr; }
+      .form .full{grid-column:1 / -1;}
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>Porosi-Kesh</h1>
+      <div class="sub">Biznesi: <b>{{ b }}</b></div>
+    </div>
+    <div class="btns">
+      <a class="btn" href="/dashboard?b={{b}}">⬅ Dashboard</a>
+      <a class="btn primary" href="/orders_cash?b={{b}}">Rifresko</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <form class="form" method="post" action="/orders_cash?b={{b}}">
+      <div>
+        <label>Data</label>
+        <input type="date" name="order_date" value="{{ today }}" required>
+      </div>
+
+      <div class="full">
+        <label>Përshkrimi</label>
+        <input type="text" name="note" placeholder="p.sh. Porosi klienti / shënim...">
+      </div>
+
+      <div>
+        <label>Vlera</label>
+        <input type="number" step="0.01" name="amount" placeholder="0.00" required>
+      </div>
+
+      <div>
+        <button class="btn primary" type="submit">Shto</button>
+      </div>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Përshkrimi</th>
+          <th>Vlera</th>
+          <th>Veprime</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r["order_date"] }}</td>
+          <td>{{ r["note"] or "" }}</td>
+          <td class="amount">{{ "%.2f"|format(r["amount"]) }}</td>
+          <td class="actions">
+            <a class="edit" href="/orders_cash/edit/{{ r['id'] }}?b={{b}}">Edit</a>
+            <a class="delete" href="/orders_cash/delete/{{ r['id'] }}?b={{b}}" onclick="return confirm('A me fshi?')">Fshi</a>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if rows|length == 0 %}
+        <tr>
+          <td colspan="4" style="color:var(--muted);">Nuk ka porosi ende.</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

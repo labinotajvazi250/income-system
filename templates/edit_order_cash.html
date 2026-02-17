@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Porosi-Kesh</title></head>
+<body>
+  <h2>{{ "Ndrysho" if row else "Shto" }} Porosi-Kesh</h2>
+
+  <form method="post">
+    <label>Data:</label><br>
+    <input type="date" name="order_date" value="{{ row['order_date'] if row else '' }}" required><br><br>
+
+    <label>Vlera:</label><br>
+    <input type="number" step="0.01" name="amount" value="{{ row['amount'] if row else '' }}" required><br><br>
+
+    <label>Përshkrimi:</label><br>
+    <input type="text" name="description" value="{{ row['description'] if row else '' }}"><br><br>
+
+    <button type="submit">Ruaj</button>
+  </form>
+
+  <br>
+  <a href="/orders_cash?b={{b}}">⬅ Lista Porosi-Kesh</a>
+</body>
+</html>

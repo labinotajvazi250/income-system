@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blerje/Kosto — {{ b }}</title>
+  <style>
+    :root{ --bg:#0b1220; --card:#111a2e; --text:#eaf0ff; --muted:#9fb0d0; --border:#223056; --btn:#1d2a4a; --btn2:#2b3b64; }
+    body{ font-family: Arial, sans-serif; margin:16px; background:var(--bg); color:var(--text); }
+    .card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; }
+    .top{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+    .btn{ background:var(--btn); border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:12px; text-decoration:none; display:inline-block; }
+    .btn:hover{ background:var(--btn2); }
+    input, button, select{ padding:10px; font-size:16px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--text); }
+    table{ width:100%; border-collapse:collapse; margin-top:12px; }
+    th, td{ padding:10px; border-bottom:1px solid var(--border); text-align:left; }
+    th{ color:var(--muted); font-weight:700; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
+    .muted{ color:var(--muted); font-size:12px; }
+  </style>
+</head>
+<body>
+
+  <div class="top">
+    <h2 style="margin:0;">Blerje/Kosto — {{ b }}</h2>
+    <a class="btn" href="/dashboard?b={{ b }}">← Dashboard</a>
+  </div>
+
+  <div class="card" style="margin-top:12px;">
+    <form class="row" method="post" action="/purchases?b={{ b }}">
+      <div>
+        <div class="muted">Data</div>
+        <input type="date" name="buy_date" value="{{ today }}" required>
+      </div>
+
+      <div style="min-width:220px; flex:1;">
+        <div class="muted">Furnitori / Përshkrimi</div>
+        <input type="text" name="vendor" placeholder="p.sh. Furnitori X" required>
+      </div>
+
+      <div style="min-width:180px;">
+        <div class="muted">Shuma</div>
+        <input type="number" step="0.01" name="amount" placeholder="0.00" required>
+      </div>
+
+      <button class="btn" type="submit">Shto</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Furnitori</th>
+          <th>Shuma</th>
+          <th>Veprime</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r["buy_date"] }}</td>
+          <td>{{ r["vendor"] }}</td>
+          <td>{{ '%.2f'|format(r["amount"]) }}</td>
+          <td>
+            <a class="btn" href="/purchases/edit/{{ r['id'] }}?b={{ b }}">✏️ Edit</a>
+            <a class="btn" href="/purchases/delete/{{ r['id'] }}?b={{ b }}" onclick="return confirm('A je i sigurt që do ta fshish?')">🗑️ Fshi</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>

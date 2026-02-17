@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#111a2e; --text:#eaf0ff; --muted:#9fb0d0;
+      --border:#223056; --btn:#1d2a4a; --btn2:#2b3b64; --active:#2563eb;
+    }
+    [data-theme="light"]{
+      --bg:#f6f7fb; --card:#ffffff; --text:#111827; --muted:#6b7280;
+      --border:#e5e7eb; --btn:#eef2ff; --btn2:#e0e7ff; --active:#2563eb;
+    }
+    body{ font-family: Arial, sans-serif; margin:16px; background:var(--bg); color:var(--text); }
+    .top{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+    .btn{ background:var(--btn); border:1px solid var(--border); color:var(--text);
+      padding:10px 12px; border-radius:12px; text-decoration:none; display:inline-block; }
+    .btn:hover{ background:var(--btn2); }
+    .btnActive{ background:var(--active) !important; border-color:#60a5fa !important; }
+    .grid{ display:grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap:12px; margin-top:12px; }
+    @media (max-width: 800px){ .grid{ grid-template-columns: 1fr; } }
+    .card{ background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; }
+    .label{ color:var(--muted); font-size:13px; }
+    .value{ font-size:26px; font-weight:800; margin-top:6px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
+    input, button{ padding:10px; font-size:16px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--text); }
+    .charts{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px; }
+    @media (max-width: 900px){ .charts{ grid-template-columns: 1fr; } }
+    footer{ margin-top:14px; color:var(--muted); font-size:12px; }
+    .profitBottom{ margin-top:12px; text-align:center; font-size:28px; font-weight:900; padding:16px; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h2 style="margin:0;">Dashboard</h2>
+    <button class="btn" id="themeBtn" type="button">Ndrysho theme</button>
+  </div>
+
+  <!-- Bizneset si butona -->
+  <div class="row" style="margin-top:10px;">
+    <a class="btn {{ 'btnActive' if b=='LD' else '' }}" href="/dashboard?b=LD{% if start %}&start={{start}}{% endif %}{% if end %}&end={{end}}{% endif %}">📊 L&amp;D</a>
+    <a class="btn {{ 'btnActive' if b=='DL' else '' }}" href="/dashboard?b=DL{% if start %}&start={{start}}{% endif %}{% if end %}&end={{end}}{% endif %}">📦 D&amp;L</a>
+
+    <a class="btn" href="/sales?b={{b}}">+ Shto Shitje</a>
+    <a class="btn" href="/purchases?b={{b}}">+ Shto Blerje/Kosto</a>
+    <a class="btn" href="/orders_cash?b={{b}}">+ Porosi-Kesh</a>
+  </div>
+
+  <form class="row" method="get" action="/dashboard" style="margin-top:12px;">
+    <input type="hidden" name="b" value="{{b}}">
+    <div>
+      <div class="label">Nga</div>
+      <input type="date" name="start" value="{{start}}">
+    </div>
+    <div>
+      <div class="label">Deri</div>
+      <input type="date" name="end" value="{{end}}">
+    </div>
+    <button type="submit" class="btn">Filtro</button>
+    <a class="btn" href="/dashboard?b={{b}}">Reset</a>
+  </form>
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">Total Shitje</div>
+      <div class="value">{{ '%.2f'|format(total_sales) }}</div>
+    </div>
+    <div class="card">
+      <div class="label">Total Blerje/Kosto</div>
+      <div class="value">{{ '%.2f'|format(total_purchases) }}</div>
+    </div>
+    <div class="card">
+      <div class="label">Porosi-Kesh</div>
+      <div class="value">{{ '%.2f'|format(total_orders) }}</div>
+    </div>
+    <div class="card">
+      <div class="label">Fitimi (Total)</div>
+      <div class="value">{{ '%.2f'|format(profit) }}</div>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="card">
+      <div class="label">Shitje vs Blerje (sipas datës)</div>
+      <canvas id="barChart"></canvas>
+    </div>
+    <div class="card">
+      <div class="label">Profit (sipas datës)</div>
+      <canvas id="lineChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card profitBottom">
+    Profit në fund: {{ '%.2f'|format(profit) }}
+  </div>
+
+  <footer>Data sot: {{today}}</footer>
+
+  <script>
+    const root = document.documentElement;
+    const saved = localStorage.getItem("theme");
+    if(saved) root.setAttribute("data-theme", saved);
+    document.getElementById("themeBtn").addEventListener("click", () => {
+      const cur = root.getAttribute("data-theme") || "dark";
+      const next = (cur === "dark") ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      localStorage.setItem("theme", next);
+    });
+
+    const labels = {{ labels|tojson }};
+    const sales = {{ sales_series|tojson }};
+    const purchases = {{ purchases_series|tojson }};
+    const profitSeries = {{ profit_series|tojson }};
+
+    new Chart(document.getElementById("barChart"), {
+      type: "bar",
+      data: { labels, datasets: [{ label: "Shitje", data: sales }, { label: "Blerje/Kosto", data: purchases }] },
+      options: { responsive:true, maintainAspectRatio:false }
+    });
+
+    new Chart(document.getElementById("lineChart"), {
+      type: "line",
+      data: { labels, datasets: [{ label: "Profit", data: profitSeries, tension: 0.2 }] },
+      options: { responsive:true, maintainAspectRatio:false }
+    });
+
+    document.getElementById("barChart").parentElement.style.height = "320px";
+    document.getElementById("lineChart").parentElement.style.height = "320px";
+  </script>
+</body>
+</html>
